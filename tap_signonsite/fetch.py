@@ -7,6 +7,8 @@ from tap_signonsite.utility import get_all_pages, formatDate
 
 def get_all_sites(schemas, state, mdata):
     extraction_time = singer.utils.now()
+    users = []
+    companies = []
 
     with metrics.record_counter("sites") as s_counter:
         with metrics.record_counter("attendances") as a_counter:
@@ -33,6 +35,12 @@ def get_all_sites(schemas, state, mdata):
                                 attendance,
                                 time_extracted=extraction_time,
                             )
+
+                            if schemas.get("users"):
+                                users.append(attendance["user"])
+                            if schemas.get("companies"):
+                                companies.append(attendance["company"])
+
                             a_counter.increment()
 
                 # Update attendances bookmark at the end
@@ -44,6 +52,26 @@ def get_all_sites(schemas, state, mdata):
                     singer.write_bookmark(
                         state, "attendances", "since", formatDate(extraction_time),
                     )
+
+                # get unique users and write records
+                if schemas.get("users"):
+                    user_ids = set()
+                    for user in users:
+                        if user["id"] not in user_ids:
+                            user_ids.add(user["id"])
+                            singer.write_record(
+                                "users", user, time_extracted=extraction_time,
+                            )
+
+                # get unique companies and write records
+                if schemas.get("companies"):
+                    company_ids = set()
+                    for company in companies:
+                        if company["id"] not in company_ids:
+                            company_ids.add(company["id"])
+                            singer.write_record(
+                                "companies", company, time_extracted=extraction_time,
+                            )
 
     return state
 

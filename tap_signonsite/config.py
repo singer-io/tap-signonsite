@@ -4,6 +4,8 @@ from tap_signonsite.fetch import get_all_sites
 KEY_PROPERTIES = {
     "sites": ["id"],
     "attendances": ["id"],
+    "companies": ["id"],
+    "users": ["id"],
 }
 
 SYNC_FUNCTIONS = {
@@ -11,5 +13,5 @@ SYNC_FUNCTIONS = {
 }
 
 SUB_STREAMS = {
-    "sites": ["attendances"],
+    "sites": ["attendances", "companies", "users"],
 }
