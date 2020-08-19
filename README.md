@@ -31,7 +31,7 @@ This tap:
 
 3. Create the config file
 
-   Create a JSON file called `config.json` containing the access token you just created. Each repo path should be space delimited.
+   Create a JSON file called `config.json` containing the access token you just created.
 
    ```json
    { "api_key": "yourapikey" }
