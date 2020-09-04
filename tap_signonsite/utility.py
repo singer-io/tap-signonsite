@@ -42,6 +42,11 @@ def get_page(source, url, start=0, offset=0):
 
 def get_all_pages(source, url, start=0):
     offset = 0
+
+    # blank bookmark can come through as None, which isn't caught by default value for start, so backend API throws an error
+    if start == None:
+        start = 0
+
     while True:
         r = get_page(source, url, start, offset)
         # throw exception if not 200
