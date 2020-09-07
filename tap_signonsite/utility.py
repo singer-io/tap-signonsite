@@ -17,7 +17,7 @@ class NotFoundException(Exception):
 
 # constants
 baseUrl = "https://app.signonsite.com.au/api/public"
-per_page = 20
+per_page = 2000  # this is the max that the API allows
 
 
 def get_page(source, url, start=0, offset=0):
