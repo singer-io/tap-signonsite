@@ -10,6 +10,8 @@ This tap:
 - Extracts the following resources from SignOnSite:
   - Sites
   - Attendances
+  - Companies
+  - Users
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
