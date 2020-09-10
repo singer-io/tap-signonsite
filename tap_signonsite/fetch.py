@@ -30,6 +30,7 @@ def get_all_sites(schemas, state, mdata):
                         for attendance in get_attendances(
                             site_id, schemas["attendances"], state, mdata
                         ):
+                            attendance["site_id"] = site_id
                             singer.write_record(
                                 "attendances",
                                 attendance,
@@ -45,10 +46,6 @@ def get_all_sites(schemas, state, mdata):
 
                 # Update attendances bookmark at the end
                 if schemas.get("attendances"):
-                    # print(
-                    #     "Going to write attendances bookmark",
-                    #     formatDate(extraction_time),
-                    # )
                     singer.write_bookmark(
                         state, "attendances", "since", formatDate(extraction_time),
                     )

@@ -3,21 +3,13 @@
   "additionalProperties": false,
   "properties": {
     "id": { "type": ["integer"] },
+    "site_id": { "type": ["integer"] },
     "user": {
       "type": ["null", "object"],
       "additionalProperties": false,
       "properties": {
         "id": {
-          "type": ["null", "integer"]
-        },
-        "first_name": {
-          "type": ["null", "string"]
-        },
-        "last_name": {
-          "type": ["null", "string"]
-        },
-        "email": {
-          "type": ["null", "string"]
+          "type": ["integer"]
         }
       }
     },
@@ -27,9 +19,6 @@
       "properties": {
         "id": {
           "type": ["null", "integer"]
-        },
-        "name": {
-          "type": ["null", "string"]
         }
       }
     },
