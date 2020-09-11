@@ -1,3 +1,4 @@
+import copy
 import singer
 import singer.metrics as metrics
 from singer import metadata
@@ -27,22 +28,25 @@ def get_all_sites(schemas, state, mdata):
                     if schemas.get("attendances"):
                         site_id = site["id"]
 
-                        for attendance in get_attendances(
-                            site_id, schemas["attendances"], state, mdata
-                        ):
+                        for attendance in get_attendances(site_id, state):
                             attendance["site_id"] = site_id
+                            with singer.Transformer() as transformer:
+                                rec = transformer.transform(
+                                    attendance,
+                                    schemas["attendances"],
+                                    metadata=metadata.to_map(mdata),
+                                )
                             singer.write_record(
-                                "attendances",
-                                attendance,
-                                time_extracted=extraction_time,
+                                "attendances", rec, time_extracted=extraction_time,
                             )
 
+                            a_counter.increment()
+
+                            # Transform doesn't mutate original record so the data is still there
                             if schemas.get("users"):
                                 users.append(attendance["user"])
                             if schemas.get("companies"):
                                 companies.append(attendance["company"])
-
-                            a_counter.increment()
 
                 # Update attendances bookmark at the end
                 if schemas.get("attendances"):
@@ -73,18 +77,14 @@ def get_all_sites(schemas, state, mdata):
     return state
 
 
-def get_attendances(site_id, schema, state, mdata):
+def get_attendances(site_id, state):
     bookmark_value = get_bookmark(state, "attendances", "since")
 
-    for response in get_all_pages(
+    for page in get_all_pages(
         "attendances", "/sites/{}/attendances".format(site_id), bookmark_value
     ):
-        attendances = response["data"]
-        for attendance in attendances:
-            with singer.Transformer() as transformer:
-                rec = transformer.transform(
-                    attendance, schema, metadata=metadata.to_map(mdata)
-                )
-            yield rec
+        rows = page["data"]
+        for attendance in rows:
+            yield attendance
 
     return state
