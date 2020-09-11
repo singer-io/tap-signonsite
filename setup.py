@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tap-signonsite",
-    version="1.9.0",
+    version="1.0.0",
     description="Singer.io tap for extracting data from the SignOnSite API",
     author="Sam Woolerton",
     url="https://samwoolerton.com",
