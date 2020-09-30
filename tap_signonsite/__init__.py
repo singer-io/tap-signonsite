@@ -4,7 +4,7 @@ import singer
 from singer import metadata
 
 from tap_signonsite.utility import get_abs_path, session
-from tap_signonsite.config import KEY_PROPERTIES, SYNC_FUNCTIONS, SUB_STREAMS
+from tap_signonsite.config import SYNC_FUNCTIONS, SUB_STREAMS
 
 logger = singer.get_logger()
 
@@ -25,17 +25,14 @@ def load_schemas():
 
 def populate_metadata(schema_name, schema):
     mdata = metadata.new()
-    # mdata = metadata.write(mdata, (), 'forced-replication-method', KEY_PROPERTIES[schema_name])
-    mdata = metadata.write(
-        mdata, (), "table-key-properties", KEY_PROPERTIES[schema_name]
-    )
+    mdata = metadata.write(mdata, (), "table-key-properties", ["id"])
 
     for field_name in schema["properties"].keys():
         mdata = metadata.write(
             mdata,
             ("properties", field_name),
             "inclusion",
-            "automatic" if field_name in KEY_PROPERTIES[schema_name] else "available",
+            "automatic" if field_name == "id" else "available",
         )
 
     return mdata
@@ -56,7 +53,7 @@ def get_catalog():
             "tap_stream_id": schema_name,
             "schema": schema,
             "metadata": metadata.to_list(mdata),
-            "key_properties": KEY_PROPERTIES[schema_name],
+            "key_properties": ["id"],
         }
         streams.append(catalog_entry)
 
