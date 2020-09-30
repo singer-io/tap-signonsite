@@ -4,11 +4,13 @@ import singer
 from singer import metadata
 
 from tap_signonsite.utility import get_abs_path, session
-from tap_signonsite.config import SYNC_FUNCTIONS, SUB_STREAMS
+from tap_signonsite.fetch import get_all_sites
 
 logger = singer.get_logger()
 
 REQUIRED_CONFIG_KEYS = ["api_key"]
+
+sub_stream_ids = ["attendances", "companies", "users"]
 
 
 def load_schemas():
@@ -98,46 +100,42 @@ def do_sync(config, state, catalog):
 
     selected_stream_ids = get_selected_streams(catalog)
 
-    for stream in catalog["streams"]:
-        stream_id = stream["tap_stream_id"]
-        stream_schema = stream["schema"]
-        mdata = stream["metadata"]
+    # fail early if invalid
+    # if not empty then has to have sites
+    if selected_stream_ids and "sites" not in selected_stream_ids:
+        raise Exception("Must select sites in order to sync any other resources.")
+    if "attendances" not in selected_stream_ids and (
+        "users" in selected_stream_ids or "companies" in selected_stream_ids
+    ):
+        raise Exception(
+            "Must select attendances in order to sync any users or companies."
+        )
 
-        # if it is a "sub_stream", it will be sync'd by its parent
-        if not SYNC_FUNCTIONS.get(stream_id):
-            continue
+    stream = get_stream_from_catalog("sites", catalog)
+    stream_id = stream["tap_stream_id"]
+    stream_schema = stream["schema"]
+    mdata = stream["metadata"]
 
-        # if stream is selected, write schema and sync
-        if stream_id in selected_stream_ids:
-            singer.write_schema(stream_id, stream_schema, stream["key_properties"])
+    # if stream is selected, write schema and sync
+    if stream_id in selected_stream_ids:
+        singer.write_schema(stream_id, stream_schema, stream["key_properties"])
 
-            # get sync function and any sub streams
-            sync_func = SYNC_FUNCTIONS[stream_id]
-            sub_stream_ids = SUB_STREAMS.get(stream_id, None)
+        # handle streams with sub streams
+        stream_schemas = {stream_id: stream_schema}
 
-            # sync stream
-            if not sub_stream_ids:
-                state = sync_func(stream_schema, state, mdata)
+        # get and write selected sub stream schemas
+        for sub_stream_id in sub_stream_ids:
+            if sub_stream_id in selected_stream_ids:
+                sub_stream = get_stream_from_catalog(sub_stream_id, catalog)
+                stream_schemas[sub_stream_id] = sub_stream["schema"]
+                singer.write_schema(
+                    sub_stream_id, sub_stream["schema"], sub_stream["key_properties"]
+                )
 
-            # handle streams with sub streams
-            else:
-                stream_schemas = {stream_id: stream_schema}
+        # sync stream and its sub streams
+        state = get_all_sites(stream_schemas, state, mdata)
 
-                # get and write selected sub stream schemas
-                for sub_stream_id in sub_stream_ids:
-                    if sub_stream_id in selected_stream_ids:
-                        sub_stream = get_stream_from_catalog(sub_stream_id, catalog)
-                        stream_schemas[sub_stream_id] = sub_stream["schema"]
-                        singer.write_schema(
-                            sub_stream_id,
-                            sub_stream["schema"],
-                            sub_stream["key_properties"],
-                        )
-
-                # sync stream and it's sub streams
-                state = sync_func(stream_schemas, state, mdata)
-
-            singer.write_state(state)
+        singer.write_state(state)
 
 
 @singer.utils.handle_top_exception(logger)
