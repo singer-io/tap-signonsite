@@ -1,9 +1,7 @@
 import os
-import argparse
 import json
 import singer
 from singer import metadata
-from singer.bookmarks import get_bookmark
 
 from tap_signonsite.utility import get_abs_path, session
 from tap_signonsite.config import KEY_PROPERTIES, SYNC_FUNCTIONS, SUB_STREAMS
@@ -102,8 +100,6 @@ def do_sync(config, state, catalog):
     session.headers.update({"Authorization": "Bearer " + config["api_key"]})
 
     selected_stream_ids = get_selected_streams(catalog)
-
-    singer.write_state(state)
 
     for stream in catalog["streams"]:
         stream_id = stream["tap_stream_id"]

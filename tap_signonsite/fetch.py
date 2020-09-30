@@ -1,4 +1,3 @@
-import copy
 import singer
 import singer.metrics as metrics
 from singer import metadata
