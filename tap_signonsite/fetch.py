@@ -59,8 +59,14 @@ def get_all_sites(schemas, state, mdata):
                     for user in users:
                         if user["id"] not in user_ids:
                             user_ids.add(user["id"])
+                            with singer.Transformer() as transformer:
+                                transformed = transformer.transform(
+                                    user,
+                                    schemas["users"],
+                                    metadata=metadata.to_map(mdata),
+                                )
                             singer.write_record(
-                                "users", user, time_extracted=extraction_time,
+                                "users", transformed, time_extracted=extraction_time,
                             )
 
                 # get unique companies and write records
@@ -69,8 +75,16 @@ def get_all_sites(schemas, state, mdata):
                     for company in companies:
                         if company["id"] not in company_ids:
                             company_ids.add(company["id"])
+                            with singer.Transformer() as transformer:
+                                transformed = transformer.transform(
+                                    company,
+                                    schemas["users"],
+                                    metadata=metadata.to_map(mdata),
+                                )
                             singer.write_record(
-                                "companies", company, time_extracted=extraction_time,
+                                "companies",
+                                transformed,
+                                time_extracted=extraction_time,
                             )
 
     return state
