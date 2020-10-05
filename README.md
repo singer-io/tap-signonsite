@@ -65,3 +65,5 @@ This tap:
    ```bash
    tap-signonsite --config config.json --properties properties.json
    ```
+   
+   Copyright &copy; 2020 Stitch
