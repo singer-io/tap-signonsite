@@ -25,7 +25,7 @@ def load_schemas():
     return schemas
 
 
-def populate_metadata(schema_name, schema):
+def populate_metadata(_, schema):
     mdata = metadata.new()
     mdata = metadata.write(mdata, (), "table-key-properties", ["id"])
 
