@@ -1,7 +1,7 @@
 import os
+from datetime import datetime
 import requests
 import singer.metrics as metrics
-from datetime import datetime
 
 
 session = requests.Session()
@@ -42,7 +42,7 @@ def get_all_pages(source, url, start=0):
     offset = 0
 
     # blank bookmark can come through as None, which isn't caught by default value for start, so backend API throws an error
-    if start == None:
+    if start is None:
         start = 0
 
     while True:
